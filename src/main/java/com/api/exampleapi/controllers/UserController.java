@@ -1,7 +1,7 @@
 package com.api.exampleapi.controllers;
 
 import com.api.exampleapi.models.LoginResponse;
-import com.api.exampleapi.models.ResponseModel;
+import com.api.exampleapi.models.ManagementResponseModel;
 import com.api.exampleapi.database.enities.UserEnity;
 import com.api.exampleapi.database.repositories.NamesRepository;
 import com.api.exampleapi.database.enities.NamesEnity;
@@ -17,12 +17,12 @@ import java.util.List;
 
 @Validated
 @RestController
-public class FirstController {
+public class UserController {
     private final NamesRepository namesRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public FirstController(NamesRepository namesRepository, UserRepository userRepository) {
+    public UserController(NamesRepository namesRepository, UserRepository userRepository) {
         this.namesRepository = namesRepository;
         this.userRepository = userRepository;
     }
@@ -53,7 +53,7 @@ public class FirstController {
     }
 
     @PostMapping("/user")
-    public ResponseModel addUser(
+    public ManagementResponseModel addUser(
             @Valid @RequestBody UserEnity requestData,
             @RequestHeader("X-access-token") String userToken
     ) {
@@ -61,11 +61,11 @@ public class FirstController {
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ResponseModel(400, "problem with decoding user token");
+            return new ManagementResponseModel(400, "problem with decoding user token");
         }
 
         if (!decodedUserTokenPayload.get("role").equals("admin")) {
-            return new ResponseModel(400, "You dont have permission for this action");
+            return new ManagementResponseModel(400, "You dont have permission for this action");
         }
 
 
@@ -79,10 +79,32 @@ public class FirstController {
 
         if( userRepository.save(requestData).equals(requestData)){
 
-            return new ResponseModel(200, "ok");
+            return new ManagementResponseModel(200, "ok");
         };
 
-        return new ResponseModel(400, "not ok");
+        return new ManagementResponseModel(400, "not ok");
+    }
+
+    @PostMapping("/user/self")
+    public ManagementResponseModel addUserBySelf(
+            @Valid @RequestBody UserEnity requestData
+    ) {
+
+
+        String newUserToken = JwtService.generateNewToken(
+                requestData.getEmail(),
+                requestData.getRole(),
+                0
+        );
+
+        requestData.setToken(newUserToken);
+
+        if( userRepository.save(requestData).equals(requestData)){
+
+            return new ManagementResponseModel(200, "ok");
+        };
+
+        return new ManagementResponseModel(400, "not ok");
     }
 
 }
