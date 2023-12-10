@@ -69,4 +69,11 @@ public class TaskEnity {
         this.isDone = isDone;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public void setDeadlineTimestamp(int deadlineTimestamp) {
+        this.deadlineTimestamp = deadlineTimestamp;
+    }
+
 }

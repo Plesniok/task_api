@@ -2,11 +2,8 @@ package com.api.exampleapi.controllers;
 
 import com.api.exampleapi.database.enities.TaskEnity;
 import com.api.exampleapi.database.repositories.TaskRepository;
-import com.api.exampleapi.models.LoginResponse;
+import com.api.exampleapi.models.EditTaskRequest;
 import com.api.exampleapi.models.ManagementResponseModel;
-import com.api.exampleapi.database.enities.UserEnity;
-import com.api.exampleapi.database.repositories.NamesRepository;
-import com.api.exampleapi.database.enities.NamesEnity;
 import com.api.exampleapi.database.repositories.UserRepository;
 import com.api.exampleapi.models.MarkTaskAsDoneRequest;
 import com.api.exampleapi.models.TaskListsResponse;
@@ -18,17 +15,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
-import java.util.List;
 
 @Validated
 @RestController
 public class TaskController {
-    private final UserRepository userRepository;
     private final TaskRepository taskRepository;
 
     @Autowired
     public TaskController(TaskRepository taskRepository, UserRepository userRepository) {
-        this.userRepository = userRepository;
         this.taskRepository = taskRepository;
     }
 
@@ -41,7 +35,7 @@ public class TaskController {
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(400, "problem with decoding user token");
+            return new ManagementResponseModel(401, "problem with decoding user token");
         }
 
         requestData.setUserId(Integer.parseInt(decodedUserTokenPayload.get("id").toString()));
@@ -52,11 +46,11 @@ public class TaskController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(400, "not ok");
+        return new ManagementResponseModel(500, "Internal server error");
     }
 
-    @PatchMapping("/task")
-    public ManagementResponseModel patchTaskAsDone(
+    @PatchMapping("/task/done")
+    public ManagementResponseModel markTaskAsDone(
             @RequestBody MarkTaskAsDoneRequest requestData,
             @RequestHeader("X-access-token") String userToken
     ) {
@@ -64,7 +58,7 @@ public class TaskController {
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(400, "problem with decoding user token");
+            return new ManagementResponseModel(401, "problem with decoding user token");
         }
 
         TaskEnity foundTask = taskRepository.findByIdAndUserId(requestData.getTaskId(), Integer.parseInt(decodedUserTokenPayload.get("id").toString()));
@@ -80,7 +74,36 @@ public class TaskController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(500, "something gone wrong");
+        return new ManagementResponseModel(500, "Internal server error");
+    }
+
+    @PatchMapping("/task")
+    public ManagementResponseModel editTask(
+            @RequestBody EditTaskRequest requestData,
+            @RequestHeader("X-access-token") String userToken
+    ) {
+
+        Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
+
+        if (decodedUserTokenPayload == null) {
+            return new ManagementResponseModel(401, "problem with decoding user token");
+        }
+
+        TaskEnity foundTask = taskRepository.findByIdAndUserId(requestData.getTaskId(), Integer.parseInt(decodedUserTokenPayload.get("id").toString()));
+
+        if( foundTask == null){
+            return new ManagementResponseModel(400, "Task doesnt exist");
+        };
+
+        foundTask.setDescription(requestData.getDescription());
+        foundTask.setDeadlineTimestamp(requestData.getDeadlineTimestamp());
+
+        if( taskRepository.save(foundTask).equals(foundTask)){
+
+            return new ManagementResponseModel(200, "ok");
+        };
+
+        return new ManagementResponseModel(500, "Internal server error");
     }
 
     @GetMapping("/task")

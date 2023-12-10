@@ -18,24 +18,11 @@ import java.util.List;
 @Validated
 @RestController
 public class UserController {
-    private final NamesRepository namesRepository;
     private final UserRepository userRepository;
 
     @Autowired
     public UserController(NamesRepository namesRepository, UserRepository userRepository) {
-        this.namesRepository = namesRepository;
         this.userRepository = userRepository;
-    }
-
-    @GetMapping("/hello")
-    public String getHelloWorld(String test) {
-        return test;
-    }
-
-    @PostMapping("/create")
-    public NamesEnity createEntity(@Valid @RequestBody NamesEnity requestData) {
-
-        return namesRepository.save(requestData);
     }
 
     @GetMapping("/login")
@@ -61,11 +48,11 @@ public class UserController {
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(400, "problem with decoding user token");
+            return new ManagementResponseModel(401, "problem with decoding user token");
         }
 
         if (!decodedUserTokenPayload.get("role").equals("admin")) {
-            return new ManagementResponseModel(400, "You dont have permission for this action");
+            return new ManagementResponseModel(401, "You dont have permission for this action");
         }
 
 
@@ -82,7 +69,7 @@ public class UserController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(400, "not ok");
+        return new ManagementResponseModel(500, "Internal server error");
     }
 
     @PostMapping("/user/self")
@@ -90,7 +77,6 @@ public class UserController {
             @Valid @RequestBody UserEnity requestData
     ) {
 
-
         String newUserToken = JwtService.generateNewToken(
                 requestData.getEmail(),
                 requestData.getRole(),
@@ -104,7 +90,7 @@ public class UserController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(400, "not ok");
+        return new ManagementResponseModel(500, "Internal server error");
     }
 
 }
