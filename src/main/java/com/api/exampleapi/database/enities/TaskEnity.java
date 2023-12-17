@@ -11,6 +11,7 @@ public class TaskEnity {
     private Long id;
 
     @NotNull(message = "Name cannot be null")
+    @Size(min = 1, max = 20, message = "Title range must be from 1 to 20 chars")
     private String title;
 
     private int userId;

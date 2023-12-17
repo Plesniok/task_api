@@ -7,8 +7,10 @@ public class EditTaskRequest {
     @NotNull(message = "Task id cannot be null")
     private int taskId;
 
+    @NotNull(message = "description cannot be null")
     private String description;
 
+    @NotNull(message = "deadline cannot be null")
     private int deadlineTimestamp;
 
     public EditTaskRequest(

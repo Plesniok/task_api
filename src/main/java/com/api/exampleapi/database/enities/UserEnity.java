@@ -11,9 +11,11 @@ public class UserEnity {
     private Long id;
 
     @NotNull(message = "Email cannot be null")
+    @Email
     private String email;
 
     @NotNull(message = "Email cannot be null")
+    @Pattern(regexp = "^(admin|user)$", message = "Role must be 'admin' or 'user'")
     private String role;
 
     private String token;

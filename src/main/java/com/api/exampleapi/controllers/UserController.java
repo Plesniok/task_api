@@ -8,6 +8,7 @@ import com.api.exampleapi.database.enities.NamesEnity;
 import com.api.exampleapi.database.repositories.UserRepository;
 import com.api.exampleapi.services.JwtService;
 import io.jsonwebtoken.Claims;
+import jakarta.validation.constraints.Email;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public LoginResponse getHelloWorld(String email, String password) {
+    public LoginResponse getHelloWorld(@Email @Valid String email, String password) {
         List<UserEnity> ifUserExist = userRepository.findByEmailAndPassword(email, password);
 
         if(ifUserExist.size() == 0) {
