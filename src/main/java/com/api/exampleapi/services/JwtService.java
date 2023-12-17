@@ -19,7 +19,6 @@ public class JwtService {
         SecretKey key = Jwts.SIG.HS256.key().build();
 
 
-        // Convert the secret key to a Base64-encoded string (optional)
         String base64Key = "T5le/sNF/ltzky0S6xrbdCzyy9IBoPn9EaCZiEo2u0RKNEapxjJBrJT25F6Z6UliLfUJ7AtX8MZAA7VEA+ONlA==";
 
         Date currentTime = new Date();
@@ -27,8 +26,6 @@ public class JwtService {
         Date expirationDate = new Date(currentTime.getTime() + (45 * 60 * 1000));
 
         return Jwts.builder()
-//                .setIssuer("Stormpath")
-//                .setSubject("msilverman")
                 .claim("email", email)
                 .claim("role", role)
                 .claim("id", id)
