@@ -70,6 +70,10 @@ public class TaskEnity {
         this.isDone = isDone;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
