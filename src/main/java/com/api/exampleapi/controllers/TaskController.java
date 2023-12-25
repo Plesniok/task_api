@@ -10,6 +10,7 @@ import com.api.exampleapi.models.TaskListsResponse;
 import com.api.exampleapi.services.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.SignatureException;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -48,12 +49,13 @@ public class TaskController {
     public ManagementResponseModel addTask(
             @Valid @RequestBody TaskEnity requestData,
             @RequestHeader("X-access-token") String userToken
-    ) {
+    ) throws BadRequestException {
 
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(401, "problem with decoding user token");
+
+            throw new SignatureException("Invalid token");
         }
 
         requestData.setUserId(Integer.parseInt(decodedUserTokenPayload.get("id").toString()));
@@ -64,25 +66,25 @@ public class TaskController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(500, "Internal server error");
+        throw new BadRequestException("Internal server error");
     }
 
     @PatchMapping("/task/done")
     public ManagementResponseModel markTaskAsDone(
             @RequestBody MarkTaskAsDoneRequest requestData,
             @RequestHeader("X-access-token") String userToken
-    ) {
+    ) throws BadRequestException {
 
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(401, "problem with decoding user token");
+            throw new SignatureException("Invalid token");
         }
 
         TaskEnity foundTask = taskRepository.findByIdAndUserId(requestData.getTaskId(), Integer.parseInt(decodedUserTokenPayload.get("id").toString()));
 
         if( foundTask == null){
-            return new ManagementResponseModel(400, "Task doesnt exist");
+            throw new BadRequestException("Task does not exist");
         };
 
         foundTask.setIsDone(true);
@@ -92,25 +94,25 @@ public class TaskController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(500, "Internal server error");
+        throw new BadRequestException("Internal server error");
     }
 
     @PatchMapping("/task")
     public ManagementResponseModel editTask(
             @RequestBody EditTaskRequest requestData,
             @RequestHeader("X-access-token") String userToken
-    ) {
+    ) throws BadRequestException {
 
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(401, "problem with decoding user token");
+            throw new SignatureException("Invalid token");
         }
 
         TaskEnity foundTask = taskRepository.findByIdAndUserId(requestData.getTaskId(), Integer.parseInt(decodedUserTokenPayload.get("id").toString()));
 
         if( foundTask == null){
-            return new ManagementResponseModel(400, "Task doesnt exist");
+            throw new BadRequestException("task does not exist");
         };
 
         foundTask.setDescription(requestData.getDescription());
@@ -121,7 +123,7 @@ public class TaskController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(500, "Internal server error");
+        throw new BadRequestException("Internal server error");
     }
 
     @GetMapping("/tasks")

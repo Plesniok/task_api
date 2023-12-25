@@ -3,12 +3,13 @@ package com.api.exampleapi.controllers;
 import com.api.exampleapi.models.LoginResponse;
 import com.api.exampleapi.models.ManagementResponseModel;
 import com.api.exampleapi.database.enities.UserEnity;
-import com.api.exampleapi.database.repositories.NamesRepository;
-import com.api.exampleapi.database.enities.NamesEnity;
+
 import com.api.exampleapi.database.repositories.UserRepository;
 import com.api.exampleapi.services.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.constraints.Email;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
+import org.springframework.web.client.HttpServerErrorException;
+//import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,16 +49,17 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public LoginResponse getHelloWorld(@Email @Valid String email, String password) {
+    public LoginResponse getHelloWorld(@Email @Valid String email, String password) throws BadRequestException {
+        System.out.println("get user");
         List<UserEnity> ifUserExist = userRepository.findByEmailAndPassword(email, password);
 
         if(ifUserExist.size() == 0) {
-            return new LoginResponse("Invalid login data");
+            throw new BadRequestException("invalid login data");
         }
 
         UserEnity userData = ifUserExist.get(0);
 
-        return new LoginResponse(userData.getToken());
+        return new LoginResponse(200, userData.getToken());
 
     }
 
@@ -63,16 +67,18 @@ public class UserController {
     public ManagementResponseModel addUser(
             @Valid @RequestBody UserEnity requestData,
             @RequestHeader("X-access-token") String userToken
-    ) {
+    ) throws BadRequestException {
 
         Claims decodedUserTokenPayload = JwtService.decodeTokenToPayload(userToken);
 
         if (decodedUserTokenPayload == null) {
-            return new ManagementResponseModel(401, "problem with decoding user token");
+
+            throw new SignatureException("Invalid token");
         }
 
         if (!decodedUserTokenPayload.get("role").equals("admin")) {
-            return new ManagementResponseModel(401, "You dont have permission for this action");
+
+            throw new BadRequestException("You dont have permission for this action");
         }
 
 
@@ -89,13 +95,13 @@ public class UserController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(500, "Internal server error");
+        throw new BadRequestException("Internal server error");
     }
 
     @PostMapping("/user/self")
     public ManagementResponseModel addUserBySelf(
             @Valid @RequestBody UserEnity requestData
-    ) {
+    ) throws BadRequestException {
 
         String newUserToken = JwtService.generateNewToken(
                 requestData.getEmail(),
@@ -110,7 +116,7 @@ public class UserController {
             return new ManagementResponseModel(200, "ok");
         };
 
-        return new ManagementResponseModel(500, "Internal server error");
+        throw new BadRequestException("Internal server error");
     }
 
 }
