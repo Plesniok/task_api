@@ -59,7 +59,17 @@ public class UserController {
 
         UserEnity userData = ifUserExist.get(0);
 
-        return new LoginResponse(200, userData.getToken());
+        String newUserToken = JwtService.generateNewToken(
+                email,
+                userData.getRole(),
+                0
+        );
+
+        userData.setToken(newUserToken);
+
+        userRepository.save(userData);
+
+        return new LoginResponse(200, newUserToken);
 
     }
 
