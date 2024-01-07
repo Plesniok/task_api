@@ -16,6 +16,11 @@ on:
 
 jobs:
   build:
+  
+    env:
+      DOCKER_IMAGE_NAME: plesniok/task-api
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     runs-on: ubuntu-latest
 
@@ -36,3 +41,19 @@ jobs:
 
     - name: Run tests
       run: mvn test
+
+    - name: Build Docker Image
+      run: |
+        docker buildx create --use
+        docker buildx inspect --bootstrap
+        docker buildx build --platform linux/amd64,linux/arm64 -t $DOCKER_IMAGE_NAME:latest -t $DOCKER_IMAGE_NAME:${{ github.run_number }} .
+
+    - name: Login to DockerHub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u $DOCKER_USERNAME --password-stdin
+
+    - name: Push to DockerHub
+      run: docker push $DOCKER_IMAGE_NAME
+    
+    - name: Clean up
+      run: docker rmi $DOCKER_IMAGE_NAME:latest $DOCKER_IMAGE_NAME:${{ github.run_number }}
+
