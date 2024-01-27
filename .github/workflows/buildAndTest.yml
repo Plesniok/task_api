@@ -26,9 +26,6 @@ jobs:
     - name: Run tests with environment variables
       run: mvn test
 
-    - name: SAST tests
-      run: mvn sonar:sonar
-
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
       
@@ -40,6 +37,14 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Run OWASP Dependency-Check
+      run: mvn org.owasp:dependency-check-maven:check
+
+    - name: Run OWASP ZAP DAST
+      run: |
+        docker run --name zap-container -u zap -p 8080:8080 -d owasp/zap2docker-stable
+        mvn -Dzap.host=172.17.0.1 -Dzap.port=8080 verify
         
     - name: Build and push
       uses: docker/build-push-action@v5
