@@ -42,7 +42,8 @@ jobs:
       run: mvn org.owasp:dependency-check-maven:check
 
     - name: Run SAST with Semgrep
-      run: docker run --rm -v "$(pwd):/src" returntocorp/semgrep $(git ls-files '*.java')
+      run: docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/src" returntocorp/semgrep $(git ls-files '*.java')
+
 
     - name: Run OWASP ZAP DAST
       run: |
