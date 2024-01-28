@@ -40,10 +40,14 @@ jobs:
 
     - name: Run STA Dependency-Check
       run: mvn org.owasp:dependency-check-maven:check
-
-    - name: Run SAST with Semgrep
-      run: docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/src" returntocorp/semgrep $(git ls-files '*.java')
-
+    
+    - name: Set up Semgrep
+      uses: returntocorp/setup-semgrep@v1
+    
+    - name: Run Semgrep
+      run: semgrep --config my-semgrep-rules.yaml '**/*.java'
+    
+    - name: Build and push
 
     - name: Run OWASP ZAP DAST
       run: |
