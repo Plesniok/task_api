@@ -11,7 +11,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+    container:
+      image: returntocorp/semgrep
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 21
@@ -40,14 +43,12 @@ jobs:
 
     - name: Run STA Dependency-Check
       run: mvn org.owasp:dependency-check-maven:check
+
+    - name: semgrep setup
+      uses: actions/checkout@v3
     
-    - name: Install Semgrep
-      run: |
-        curl -L https://semgrep.dev/install.sh | sh -s -- -c 0.45.0
-    
-    - name: Run Semgrep
-      run: |
-        semgrep --config my-semgrep-rules.yaml '**/*.java'
+    - name: semgrep run SAST and DAST
+      run: semgrep ci
 
     - name: Run OWASP ZAP DAST
       run: |
