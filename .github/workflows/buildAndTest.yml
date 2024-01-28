@@ -38,8 +38,11 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Run OWASP Dependency-Check
+    - name: Run STA Dependency-Check
       run: mvn org.owasp:dependency-check-maven:check
+
+    - name: Run SAST with Semgrep
+      run: docker run --rm -v "$(pwd):/src" returntocorp/semgrep --config=p/java $(git ls-files '*.java')
 
     - name: Run OWASP ZAP DAST
       run: |
