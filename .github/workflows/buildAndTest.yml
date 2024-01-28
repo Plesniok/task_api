@@ -46,8 +46,6 @@ jobs:
     
     - name: Run Semgrep
       run: semgrep --config my-semgrep-rules.yaml '**/*.java'
-    
-    - name: Build and push
 
     - name: Run OWASP ZAP DAST
       run: |
