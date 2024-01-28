@@ -41,11 +41,13 @@ jobs:
     - name: Run STA Dependency-Check
       run: mvn org.owasp:dependency-check-maven:check
     
-    - name: Set up Semgrep
-      uses: returntocorp/setup-semgrep@v1
+    - name: Install Semgrep
+      run: |
+        curl -L https://semgrep.dev/install.sh | sh -s -- -c 0.45.0
     
     - name: Run Semgrep
-      run: semgrep --config my-semgrep-rules.yaml '**/*.java'
+      run: |
+        semgrep --config my-semgrep-rules.yaml '**/*.java'
 
     - name: Run OWASP ZAP DAST
       run: |
